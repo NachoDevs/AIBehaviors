@@ -8,12 +8,13 @@ public class BaseNode : ScriptableObject
 
     public string nodeName = "NewState";
 
-    public NodeTransition m_inputTransition;
+    public List<NodeTransition> m_inputTransitions;
 
     private List<NodeTransition> m_transitions;
 
     public BaseNode()
     {
+        m_inputTransitions = new List<NodeTransition>();
         m_transitions = new List<NodeTransition>();
     }
 
@@ -21,7 +22,7 @@ public class BaseNode : ScriptableObject
     {
         nodeName = EditorGUILayout.TextField("Title", nodeName);
 
-        GUILayout.Label("Inputs: " + ((m_inputTransition == null) ? 0 : 1));
+        GUILayout.Label("Inputs: " + m_inputTransitions.Count);
         GUILayout.Label("Outputs: " + m_transitions.Count);
     }
 
@@ -35,9 +36,22 @@ public class BaseNode : ScriptableObject
         Rect inputRect = nodeRect;
         foreach (NodeTransition transition in m_transitions)
         {
-            Rect outputRect = transition.toNode.nodeRect;
+            Rect outputRect = new Rect(transition.toNode.nodeRect);
 
-            StateMachineEditor.DrawNodeCurve(inputRect, outputRect);
+            if (m_inputTransitions.Count > 0)
+            {
+                NodeTransition inputTransition = (NodeTransition)CreateInstance("NodeTransition");
+                inputTransition.fromNode = transition.toNode;
+                inputTransition.toNode = transition.fromNode;
+
+                if (m_inputTransitions.Contains(inputTransition))
+                //if (transition.toNode == m_inputTransition.fromNode)
+                {
+                    outputRect.x -= 20;
+                }
+            }
+
+            StateMachineEditor.DrawNodeTransitionLine(inputRect, outputRect);
         }
 
     }
@@ -46,39 +60,48 @@ public class BaseNode : ScriptableObject
     {
         // We are at the recieving end of the transition here
 
-        if(m_inputTransition != null)
+        if(m_inputTransitions.Count < 0)
         {
             return;
         }
 
         // We add our input transition
-        m_inputTransition = (NodeTransition) CreateInstance("NodeTransition");
-        m_inputTransition.fromNode = t_input;
-        m_inputTransition.toNode = this;
+        NodeTransition inputTransition = (NodeTransition) CreateInstance("NodeTransition");
+        inputTransition.fromNode = t_input;
+        inputTransition.toNode = this;
+
+        // If the transition already exists we don't add it
+        if(t_input.ContainsTransition(inputTransition))
+        {
+            return;
+        }
+
+        m_inputTransitions.Add(inputTransition);
 
         // We add to our input the same transition
-        t_input.m_transitions.Add(m_inputTransition);
+        t_input.m_transitions.Add(inputTransition);
 
     }
 
     public void NodeDeleted(BaseNode t_node)
     {
-        if(m_inputTransition != null)
-        {
-            foreach (NodeTransition transition in t_node.m_transitions)
-            {
-                if(transition.toNode == this)
-                {
-                    t_node.m_transitions.Remove(transition);
-                    break;
-                }
-            }
-        }
+        //if(m_inputTransitions.Count > 0 )
+        //{
+        //    foreach (NodeTransition transition in t_node.m_transitions)
+        //    {
+        //        if(transition.toNode == this)
+        //        {
+        //            t_node.m_transitions.Remove(transition);
+        //            break;
+        //        }
+        //    }
+        //}
 
-        foreach (NodeTransition transition in m_transitions)
-        {
-            transition.toNode.m_inputTransition = null;
-        }
+        //foreach (NodeTransition transition in m_transitions)
+        //{
+        //    transition.toNode.m_inputTransition = null;
+        //}
+        m_inputTransitions.Clear();
         m_transitions.Clear();
     }
 
@@ -86,4 +109,22 @@ public class BaseNode : ScriptableObject
     //{
         //return null;
     //}
+
+    public bool ContainsTransition(NodeTransition t_newTransition)
+    {
+        foreach(NodeTransition transition in m_transitions)
+        {
+            //if(transition.fromNode != t_newTransition.fromNode)
+            //{
+            //    return false;
+            //}
+
+            if (transition.toNode == t_newTransition.toNode)
+            {
+                return true;
+            }
+
+        }
+        return false;
+    }
 }

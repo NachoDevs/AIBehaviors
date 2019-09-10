@@ -71,7 +71,7 @@ public class BaseNode : ScriptableObject
         inputTransition.toNode = this;
 
         // If the transition already exists we don't add it
-        if(t_input.ContainsTransition(inputTransition))
+        if(t_input.ContainsTransition(inputTransition) != null)
         {
             return;
         }
@@ -85,24 +85,14 @@ public class BaseNode : ScriptableObject
 
     public void NodeDeleted(BaseNode t_node)
     {
-        //if(m_inputTransitions.Count > 0 )
-        //{
-        //    foreach (NodeTransition transition in t_node.m_transitions)
-        //    {
-        //        if(transition.toNode == this)
-        //        {
-        //            t_node.m_transitions.Remove(transition);
-        //            break;
-        //        }
-        //    }
-        //}
+        foreach(NodeTransition transition in t_node.m_inputTransitions)
+        {
+            NodeTransition nTrans = transition.fromNode.ContainsTransition(transition);
+            transition.fromNode.m_transitions.Remove(nTrans);
+        }
 
-        //foreach (NodeTransition transition in m_transitions)
-        //{
-        //    transition.toNode.m_inputTransition = null;
-        //}
-        m_inputTransitions.Clear();
-        m_transitions.Clear();
+        t_node.m_inputTransitions.Clear();
+        t_node.m_transitions.Clear();
     }
 
     //public virtual BaseInputNode ClickedOnInput(Vector2 t_pos)
@@ -110,21 +100,15 @@ public class BaseNode : ScriptableObject
         //return null;
     //}
 
-    public bool ContainsTransition(NodeTransition t_newTransition)
+    public NodeTransition ContainsTransition(NodeTransition t_newTransition)
     {
         foreach(NodeTransition transition in m_transitions)
         {
-            //if(transition.fromNode != t_newTransition.fromNode)
-            //{
-            //    return false;
-            //}
-
             if (transition.toNode == t_newTransition.toNode)
             {
-                return true;
+                return transition;
             }
-
         }
-        return false;
+        return null;
     }
 }

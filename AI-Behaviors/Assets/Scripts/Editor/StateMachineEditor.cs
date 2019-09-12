@@ -1,6 +1,9 @@
 ﻿using UnityEngine;
 using UnityEditor;
 using System.Collections.Generic;
+using System;
+using SimpleJSON;
+using System.IO;
 
 public class StateMachineEditor : EditorWindow
 {
@@ -116,6 +119,12 @@ public class StateMachineEditor : EditorWindow
         }
 
         EndWindows();
+
+        GUI.color = new Color(193, 123, 193);
+        if (GUILayout.Button("Export StateMachine"))
+        {
+            ExportJSON();
+        }
     }
 
     private void DrawNodeWindow(int t_id)
@@ -211,4 +220,78 @@ public class StateMachineEditor : EditorWindow
         Handles.DrawLine(startPos, endPos);
     }
 
+    private void ExportJSON()
+    {
+        JSONObject allNodes = new JSONObject();
+
+        JSONObject entryNode = new JSONObject();
+        JSONArray allNodesWithoutEntry = new JSONArray();
+
+        foreach (BaseNode node in m_nodes)
+        {
+            JSONArray inputs = new JSONArray();
+
+            foreach (NodeTransition nt in node.inputTransitions)
+            {
+                JSONArray inputTransition = new JSONArray();
+
+                inputTransition.Add(nt.fromNode.nodeName);
+                inputTransition.Add(nt.toNode.nodeName);
+
+                inputs.Add(inputTransition);
+            }
+
+            JSONArray outputs = new JSONArray();
+
+            foreach (NodeTransition nt in node.outputTransitions)
+            {
+                JSONArray outputTransition = new JSONArray();
+
+                outputTransition.Add(nt.fromNode.nodeName);
+                outputTransition.Add(nt.toNode.nodeName);
+
+                outputs.Add(outputTransition);
+            }
+
+            JSONObject jsonObject = new JSONObject();
+            jsonObject.Add("nodeName", node.nodeName);
+            jsonObject.Add("inputs", inputs);
+            jsonObject.Add("outputs", outputs);
+
+            if (node == m_entryPoint)
+            {
+                entryNode = jsonObject;
+            }
+            else
+            {
+                allNodesWithoutEntry.Add(jsonObject);
+            }
+        }
+
+        allNodes.Add("entryNode", entryNode);
+        allNodes.Add("nodes", allNodesWithoutEntry);
+
+        string jsonPath = Application.persistentDataPath + "/StateMachine.json";
+        File.WriteAllText(jsonPath, allNodes.ToString());
+    }
+}
+
+[Serializable]
+public class JSONNodesWrapper
+{
+    public NodeObject entryPoint;
+    public List<NodeObject> nodes;
+}
+[Serializable]
+public class NodeObject
+{
+    public string nodeName;
+    public List<NodeNestedObject> inputTransitions;
+    public List<NodeNestedObject> outputTransitions;
+}
+[Serializable]
+public class NodeNestedObject
+{
+    public string fromName;
+    public string toName;
 }

@@ -8,44 +8,43 @@ public class BaseNode : ScriptableObject
 
     public string nodeName = "NewState";
 
-    public List<NodeTransition> m_inputTransitions;
+    public List<NodeTransition> inputTransitions;
 
-    private List<NodeTransition> m_transitions;
+    public List<NodeTransition> outputTransitions;
 
     public BaseNode()
     {
-        m_inputTransitions = new List<NodeTransition>();
-        m_transitions = new List<NodeTransition>();
+        inputTransitions = new List<NodeTransition>();
+        outputTransitions = new List<NodeTransition>();
     }
 
     public void DrawNode()
     {
         nodeName = EditorGUILayout.TextField("Title", nodeName);
 
-        GUILayout.Label("Inputs: " + m_inputTransitions.Count);
-        GUILayout.Label("Outputs: " + m_transitions.Count);
+        GUILayout.Label("Inputs: " + inputTransitions.Count);
+        GUILayout.Label("Outputs: " + outputTransitions.Count);
     }
 
     public void DrawTransitions()
     {
-        if(m_transitions.Count <= 0)
+        if(outputTransitions.Count <= 0)
         {
             return;
         }
 
         Rect inputRect = nodeRect;
-        foreach (NodeTransition transition in m_transitions)
+        foreach (NodeTransition transition in outputTransitions)
         {
             Rect outputRect = new Rect(transition.toNode.nodeRect);
 
-            if (m_inputTransitions.Count > 0)
+            if (inputTransitions.Count > 0)
             {
                 NodeTransition inputTransition = (NodeTransition)CreateInstance("NodeTransition");
                 inputTransition.fromNode = transition.toNode;
                 inputTransition.toNode = transition.fromNode;
 
-                if (m_inputTransitions.Contains(inputTransition))
-                //if (transition.toNode == m_inputTransition.fromNode)
+                if (inputTransitions.Contains(inputTransition))
                 {
                     outputRect.x -= 20;
                 }
@@ -60,7 +59,7 @@ public class BaseNode : ScriptableObject
     {
         // We are at the recieving end of the transition here
 
-        if(m_inputTransitions.Count < 0)
+        if(inputTransitions.Count < 0)
         {
             return;
         }
@@ -76,33 +75,28 @@ public class BaseNode : ScriptableObject
             return;
         }
 
-        m_inputTransitions.Add(inputTransition);
+        inputTransitions.Add(inputTransition);
 
         // We add to our input the same transition
-        t_input.m_transitions.Add(inputTransition);
+        t_input.outputTransitions.Add(inputTransition);
 
     }
 
     public void NodeDeleted(BaseNode t_node)
     {
-        foreach(NodeTransition transition in t_node.m_inputTransitions)
+        foreach(NodeTransition transition in t_node.inputTransitions)
         {
             NodeTransition nTrans = transition.fromNode.ContainsTransition(transition);
-            transition.fromNode.m_transitions.Remove(nTrans);
+            transition.fromNode.outputTransitions.Remove(nTrans);
         }
 
-        t_node.m_inputTransitions.Clear();
-        t_node.m_transitions.Clear();
+        t_node.inputTransitions.Clear();
+        t_node.outputTransitions.Clear();
     }
-
-    //public virtual BaseInputNode ClickedOnInput(Vector2 t_pos)
-    //{
-        //return null;
-    //}
 
     public NodeTransition ContainsTransition(NodeTransition t_newTransition)
     {
-        foreach(NodeTransition transition in m_transitions)
+        foreach(NodeTransition transition in outputTransitions)
         {
             if (transition.toNode == t_newTransition.toNode)
             {

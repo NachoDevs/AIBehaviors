@@ -5,135 +5,34 @@ using System;
 using SimpleJSON;
 using System.IO;
 
-public class StateMachineEditor : EditorWindow
+public class StateMachineEditor : BaseEditor
 {
-    private BaseNode m_entryPoint;
-
-    private List<BaseNode> m_nodes = new List<BaseNode>();
-
-    private Vector2 m_mousePos;
-
-    private BaseNode m_selectedNode;
-
-    private bool canMakeTransition = false;
-
     [MenuItem("Window/AI-Behaviors/StateMachineEditor")]
-    private static void ShowEditor()
+    protected static void ShowEditor()
     {
-        StateMachineEditor editor = GetWindow<StateMachineEditor>();
+        BaseEditor editor = GetWindow<StateMachineEditor>();
     }
 
-    private void OnGUI()
+    protected override void GenerateGenericMenu(bool t_hasClickedOnNode)
     {
-        bool hasClickedOnNode = false;
-
-        int selectIndex = -1;
-
-        Event e = Event.current;
-
-        m_mousePos = e.mousePosition;
-
-        for (int i = 0; i < m_nodes.Count; ++i)
-        {
-            if(m_nodes[i].nodeRect.Contains(m_mousePos))
-            {
-                selectIndex = i;
-                hasClickedOnNode = true;
-                break;
-            }
-        }
-
-        if(e.button == 1 && !canMakeTransition)
-        {
-            if(e.type == EventType.MouseDown)
-            {
-
-                GenericMenu menu = new GenericMenu();
-                if (!hasClickedOnNode)
-                {
-
-                    menu.AddItem(new GUIContent("Add State"), false, ContextCallback, "stateNode");
-                }
-                else
-                {
-                    menu.AddItem(new GUIContent("Make Transition"), false, ContextCallback, "makeTransition");
-
-                    menu.AddSeparator("");
-
-                    menu.AddItem(new GUIContent("Delete State"), false, ContextCallback, "deleteState");
-                }
-                menu.ShowAsContext();
-                e.Use();
-
-            }
-        }
-        else if(e.button == 0 && e.type == EventType.MouseDown && canMakeTransition)
-        {
-            if(hasClickedOnNode && !m_nodes[selectIndex].Equals(m_selectedNode))
-            {
-                m_nodes[selectIndex].SetInput(m_selectedNode, m_mousePos);
-            }
-
-            canMakeTransition = false;
-            m_selectedNode = null;
-
-            e.Use();
-        }
-        else if(e.button == 0 && e.type == EventType.MouseDown && !canMakeTransition)
+        GenericMenu menu = new GenericMenu();
+        if (!t_hasClickedOnNode)
         {
 
-            if(hasClickedOnNode)
-            {
-                BaseNode nodeToChange = m_nodes[selectIndex];
-
-                if(nodeToChange != null)
-                {
-                    m_selectedNode = nodeToChange;
-                    canMakeTransition = true;
-                }
-            }
+            menu.AddItem(new GUIContent("Add State"), false, ContextCallback, "stateNode");
         }
-
-        if(canMakeTransition && m_selectedNode != null)
+        else
         {
-            Rect mouseRect = new Rect(e.mousePosition.x, e.mousePosition.y, 10, 10);
+            menu.AddItem(new GUIContent("Make Transition"), false, ContextCallback, "makeTransition");
 
-            DrawNodeTransitionLine(m_selectedNode.nodeRect, mouseRect);
+            menu.AddSeparator("");
 
-            Repaint();
+            menu.AddItem(new GUIContent("Delete State"), false, ContextCallback, "deleteState");
         }
-
-        foreach (BaseNode node in m_nodes)
-        {
-            node.DrawTransitions();
-        }
-
-        BeginWindows();
-
-        for (int i = 0; i < m_nodes.Count; ++i)
-        {
-            // Definig background color for the node
-            GUI.color = (m_nodes[i] == m_entryPoint) ? Color.green : new Color(193, 123, 193);
-
-            m_nodes[i].nodeRect = GUI.Window(i, m_nodes[i].nodeRect, DrawNodeWindow, m_nodes[i].nodeName);
-        }
-
-        EndWindows();
-
-        GUI.color = new Color(193, 123, 193);
-        if (GUILayout.Button("Export StateMachine"))
-        {
-            ExportJSON();
-        }
+        menu.ShowAsContext();
     }
 
-    private void DrawNodeWindow(int t_id)
-    {
-        m_nodes[t_id].DrawNode();
-        GUI.DragWindow();
-    }
-
-    private void ContextCallback(object t_obj)
+    protected override void ContextCallback(object t_obj)
     {
         bool hasClickedOnNode = false;
 
@@ -213,14 +112,7 @@ public class StateMachineEditor : EditorWindow
         }
     }
 
-    public static void DrawNodeTransitionLine(Rect t_start, Rect t_end)
-    {
-        Vector3 startPos = new Vector3(t_start.x + t_start.width / 2, t_start.y + t_start.height / 2, 0);
-        Vector3 endPos = new Vector3(t_end.x + t_end.width / 2, t_end.y + t_end.height / 2, 0);
-        Handles.DrawLine(startPos, endPos);
-    }
-
-    private void ExportJSON()
+    protected override void ExportJSON()
     {
         JSONObject allNodes = new JSONObject();
 
@@ -274,24 +166,4 @@ public class StateMachineEditor : EditorWindow
         string jsonPath = Application.persistentDataPath + "/StateMachine.json";
         File.WriteAllText(jsonPath, allNodes.ToString());
     }
-}
-
-[Serializable]
-public class JSONNodesWrapper
-{
-    public NodeObject entryPoint;
-    public List<NodeObject> nodes;
-}
-[Serializable]
-public class NodeObject
-{
-    public string nodeName;
-    public List<NodeNestedObject> inputTransitions;
-    public List<NodeNestedObject> outputTransitions;
-}
-[Serializable]
-public class NodeNestedObject
-{
-    public string fromName;
-    public string toName;
 }

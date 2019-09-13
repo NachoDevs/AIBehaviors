@@ -18,7 +18,7 @@ public class BaseNode : ScriptableObject
         outputTransitions = new List<NodeTransition>();
     }
 
-    public void DrawNode()
+    public virtual void DrawNode()
     {
         nodeName = EditorGUILayout.TextField("Title", nodeName);
 

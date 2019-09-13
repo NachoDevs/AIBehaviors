@@ -1,30 +1,33 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using UnityEngine;
+using SimpleJSON;
 
 public class Brain : MonoBehaviour
 {
     // Public variables
-
-    public List<SM_State> states;
-
     public SM_State initialState;
 
     public SM_State currentState;
 
 
     // Private variables
-
     private Creature m_creature;
 
-    List<SM_Actionn> actions;
+    private List<SM_Action> m_actionsToPerform;
+
+    private Dictionary<string, SM_State> m_smStates;
+    private Dictionary<string, SM_Action> m_smActions;
 
     // Start is called before the first frame update
     private void Start()
     {
         m_creature = GetComponent<Creature>();
 
-        actions = new List<SM_Actionn>();
+        m_actionsToPerform = new List<SM_Action>();
+
+        m_smStates = new Dictionary<string, SM_State>();
 
         LoadStateMachine();
         SetUpStateMachine();
@@ -33,20 +36,14 @@ public class Brain : MonoBehaviour
     // Update is called once per frame
     private void Update()
     {
-        if(Input.GetKeyDown(KeyCode.Space))
-        {
-            currentState.transitions[0].isTriggered = true;
-        }
-
-
         SM_Transition triggeredTransition = null;
 
-        foreach(SM_Transition transition in currentState.transitions)
+        foreach(KeyValuePair<string, SM_Transition> transition in currentState.transitions)
         {
-            if(transition.isTriggered)
+            if(transition.Value.isTriggered)
             {
-                triggeredTransition = transition;
-                transition.isTriggered = false;
+                triggeredTransition = transition.Value;
+                transition.Value.isTriggered = false;
                 break;
             }
         }
@@ -55,8 +52,8 @@ public class Brain : MonoBehaviour
         {
             SM_State targetState = triggeredTransition.targetState;
 
-            actions.Clear();
-            actions.Add(currentState.stateAction);
+            m_actionsToPerform.Clear();
+            m_actionsToPerform.Add(currentState.stateAction);
 
             triggeredTransition.transitionAction();
 
@@ -64,66 +61,87 @@ public class Brain : MonoBehaviour
 
         }
 
-        foreach(SM_Actionn action in actions)
+        foreach(SM_Action action in m_actionsToPerform)
         {
-            action();
+            action?.Invoke();
         }
     }
 
     private void LoadStateMachine()
     {
         // Read JSON...
+        string jsonPath = Application.persistentDataPath + "/StateMachine.json";
+        string jsonString = File.ReadAllText(jsonPath);
 
-        SM_State jumpState = new SM_State
-        {
-            stateAction = JumpAction
-        };
+        JSONObject SMJson = (JSONObject) JSON.Parse(jsonString);
 
-        SM_State eatState = new SM_State
-        {
-            stateAction = EatAction
-        };
+        // Entry point
+        SM_State entryState = new SM_State();
 
-        SM_Transition jumpEat = new SM_Transition
-        {
-            targetState = eatState,
-            transitionAction = EatTransitionAction
-        };
-        jumpState.transitions.Add(jumpEat);
-        SM_Transition eatJump = new SM_Transition
-        {
-            targetState = jumpState,
-            transitionAction = JumpTransitionAction
-        };
-        eatState.transitions.Add(eatJump);
+        m_smStates.Add(SMJson["entryNode"]["nodeName"], entryState);
 
-        initialState = jumpState;
+        initialState = entryState;
+
+
+        // Rest of the states
+
+        foreach (JSONObject state in SMJson["nodes"])
+        {
+            SM_State newState = new SM_State();
+
+            m_smStates.Add(state["nodeName"], newState);
+        }
+
+        // Entry point transitions
+        foreach (JSONArray jsonTransition in SMJson["entryNode"]["outputs"])
+        {
+            SM_Transition transition = new SM_Transition
+            {
+                targetState = m_smStates[jsonTransition[1]]
+            };
+
+            entryState.transitions.Add(jsonTransition[1], transition);
+        }
+
+        // Rest of the transitions
+        foreach (JSONObject state in SMJson["nodes"])
+        {
+            foreach (JSONArray jsonTransition in state["outputs"])
+            {
+                SM_Transition transition = new SM_Transition
+                {
+                    targetState = m_smStates[jsonTransition[1]]
+                };
+
+                m_smStates[jsonTransition[0]].transitions.Add(jsonTransition[1], transition);
+            }
+        }
     }
 
     private void SetUpStateMachine()
     {
         currentState = initialState;
-        actions.Add(currentState.stateAction);
+        m_actionsToPerform.Add(currentState.stateAction);
 
     }
 
     private void JumpAction()
     {
-        print("I am jumping!!");
+        //print("I am jumping!!");
     }
 
     private void JumpTransitionAction()
     {
-        print("I am transitioning to jumping!!");
+        //print("I am transitioning to jumping!!");
     }
 
     private void EatTransitionAction()
     {
-        print("I am transitioning to eating!!");
+        //print("I am transitioning to eating!!");
     }
 
     private void EatAction()
     {
-        print("I am eating!!");
+        //print("I am eating!!");
     }
 }

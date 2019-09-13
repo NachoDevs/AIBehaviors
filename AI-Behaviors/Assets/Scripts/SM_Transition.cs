@@ -9,6 +9,6 @@ public class SM_Transition
 
     public SM_State targetState;
 
-    public SM_Actionn transitionAction;
+    public SM_Action transitionAction;
 
 }

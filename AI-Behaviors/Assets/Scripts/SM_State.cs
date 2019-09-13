@@ -4,17 +4,17 @@ using UnityEditor;
 using UnityEditor.UIElements;
 using UnityEngine.UIElements;
 
-public delegate void SM_Actionn();
+public delegate void SM_Action();
 
 public class SM_State
 {
     // Public variables
-    public List<SM_Transition> transitions;
+    public Dictionary<string, SM_Transition> transitions;
 
-    public SM_Actionn stateAction;
+    public SM_Action stateAction;
 
     public SM_State()
     {
-        transitions = new List<SM_Transition>();
+        transitions = new Dictionary<string, SM_Transition>();
     }
 }

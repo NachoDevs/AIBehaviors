@@ -8,7 +8,7 @@ public class SequenceNode : BaseNode
     // Private variables
     private Sprite m_sprite;
 
-    public SequenceNode() : base()
+    private void OnEnable()
     {
         string spritePath = "Sprites/spr_sequenceNode";
 
@@ -19,6 +19,6 @@ public class SequenceNode : BaseNode
     {
         nodeName = EditorGUILayout.TextField("Title", nodeName);
 
-        GUI.DrawTexture(new Rect(10, 10, 60, 60), m_sprite.texture, ScaleMode.ScaleToFit, true, 10.0F);
+        GUI.DrawTexture(new Rect(0, 10, 200, 100), m_sprite.texture, ScaleMode.StretchToFill, true, 10.0F);
     }
 }

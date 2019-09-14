@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
 
@@ -59,7 +60,7 @@ public class BaseNode : ScriptableObject
     {
         // We are at the recieving end of the transition here
 
-        if(inputTransitions.Count < 0)
+        if (!CanRecieveInput())
         {
             return;
         }
@@ -80,6 +81,11 @@ public class BaseNode : ScriptableObject
         // We add to our input the same transition
         t_input.outputTransitions.Add(inputTransition);
 
+    }
+
+    protected virtual bool CanRecieveInput()
+    {
+        return true;
     }
 
     public void NodeDeleted(BaseNode t_node)

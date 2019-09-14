@@ -3,13 +3,15 @@ using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
 
-public class SelectorNode : BaseNode
+public class SelectorNode : TaskNode
 {
     // Private variables
     private Sprite m_sprite;
 
     private void OnEnable()
     {
+        nodeName = "NewSelector";
+
         string spritePath = "Sprites/spr_selectorNode";
 
         m_sprite = Resources.Load<Sprite>(spritePath);

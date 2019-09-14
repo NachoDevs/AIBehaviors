@@ -3,13 +3,15 @@ using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
 
-public class SequenceNode : BaseNode
+public class SequenceNode : TaskNode
 {
     // Private variables
     private Sprite m_sprite;
 
     private void OnEnable()
     {
+        nodeName = "NewSequence";
+
         string spritePath = "Sprites/spr_sequenceNode";
 
         m_sprite = Resources.Load<Sprite>(spritePath);

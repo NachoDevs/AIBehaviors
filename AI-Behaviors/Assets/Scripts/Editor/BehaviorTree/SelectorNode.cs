@@ -23,4 +23,9 @@ public class SelectorNode : TaskNode
 
         GUI.DrawTexture(new Rect(0, 10, 200, 100), m_sprite.texture, ScaleMode.StretchToFill, true, 10.0F);
     }
+
+    public override bool CanMakeTransition()
+    {
+        return true;
+    }
 }

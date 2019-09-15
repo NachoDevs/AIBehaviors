@@ -15,6 +15,12 @@ public class TaskNode : BaseNode
         nodeName = EditorGUILayout.TextField("Title", nodeName);
     }
 
+    
+    public override bool CanMakeTransition()
+    {
+        return false;
+    }
+
     protected override bool CanRecieveInput()
     {
         return inputTransitions.Count < 1;

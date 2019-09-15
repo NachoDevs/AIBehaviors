@@ -83,6 +83,11 @@ public class BaseNode : ScriptableObject
 
     }
 
+    public virtual bool CanMakeTransition()
+    {
+        return true;
+    }
+
     protected virtual bool CanRecieveInput()
     {
         return true;

@@ -68,7 +68,7 @@ public class BaseEditor : EditorWindow
                 if (nodeToChange != null)
                 {
                     m_selectedNode = nodeToChange;
-                    canMakeTransition = true;
+                    canMakeTransition = m_selectedNode.CanMakeTransition();
                 }
             }
         }

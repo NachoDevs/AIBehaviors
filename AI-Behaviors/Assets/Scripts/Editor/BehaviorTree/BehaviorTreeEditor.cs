@@ -1,16 +1,25 @@
 ﻿using UnityEngine;
 using UnityEditor;
-using System.Collections.Generic;
-using System;
 using SimpleJSON;
 using System.IO;
 
 public class BehaviorTreeEditor : BaseEditor
 {
+    // Private variables
+    private string btName = "";
+
     [MenuItem("Window/AI-Behaviors/BehaviorTreeEditor")]
     protected static void ShowEditor()
     {
         BaseEditor editor = GetWindow<BehaviorTreeEditor>();
+    }
+
+    protected override void OnGUI()
+    {
+        GUI.color = new Color(193, 123, 193);
+        GUILayout.Label("BT Name (It has to be the same as the corresponding State in the State Machine)");
+        btName = GUILayout.TextField(btName);
+        base.OnGUI();
     }
 
     protected override void GenerateGenericMenu(bool t_hasClickedOnNode)
@@ -174,6 +183,7 @@ public class BehaviorTreeEditor : BaseEditor
 
             JSONObject jsonObject = new JSONObject();
             jsonObject.Add("nodeName", node.nodeName);
+            jsonObject.Add("nodeType", ((TaskNode)node).nodeType.ToString());
             jsonObject.Add("inputs", inputs);
             jsonObject.Add("outputs", outputs);
 
@@ -190,7 +200,7 @@ public class BehaviorTreeEditor : BaseEditor
         allNodes.Add("entryNode", entryNode);
         allNodes.Add("nodes", allNodesWithoutEntry);
 
-        string jsonPath = Application.persistentDataPath + "/StateMachine.json";
+        string jsonPath = Application.persistentDataPath + "/" + btName + ".json";
         File.WriteAllText(jsonPath, allNodes.ToString());
     }
 }

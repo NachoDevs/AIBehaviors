@@ -11,6 +11,7 @@ public class SequenceNode : TaskNode
     private void OnEnable()
     {
         nodeName = "NewSequence";
+        nodeType = NodeType.Sequence;
 
         string spritePath = "Sprites/spr_sequenceNode";
 

@@ -16,7 +16,7 @@ public class BaseEditor : EditorWindow
 
     protected bool canMakeTransition = false;
 
-    protected void OnGUI()
+    protected virtual void OnGUI()
     {
         bool hasClickedOnNode = false;
 

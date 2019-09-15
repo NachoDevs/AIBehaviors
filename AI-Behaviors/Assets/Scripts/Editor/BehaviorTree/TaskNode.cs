@@ -3,11 +3,22 @@ using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
 
+public enum NodeType
+{
+    Task,
+    Sequence,
+    Selector
+}
+
 public class TaskNode : BaseNode
 {
+    // Public variables
+    public NodeType nodeType;
+
     private void OnEnable()
     {
         nodeName = "NewTask";
+        nodeType = NodeType.Task;
     }
 
     public override void DrawNode()

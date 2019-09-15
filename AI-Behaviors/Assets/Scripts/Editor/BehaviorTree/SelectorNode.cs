@@ -11,6 +11,7 @@ public class SelectorNode : TaskNode
     private void OnEnable()
     {
         nodeName = "NewSelector";
+        nodeType = NodeType.Selector;
 
         string spritePath = "Sprites/spr_selectorNode";
 
